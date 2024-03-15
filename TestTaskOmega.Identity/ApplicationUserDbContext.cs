@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 
 namespace TestTaskOmega.Identity
 {
-    public class IdentityDbContext(DbContextOptions<IdentityDbContext> options) :
-        IdentityDbContext<ApplicationUser>(options)
+    public class ApplicationUserDbContext : IdentityDbContext<ApplicationUser>
     {
+        public ApplicationUserDbContext(DbContextOptions<ApplicationUserDbContext> options) : base(options)
+        {
+            
+        }
     }
 }

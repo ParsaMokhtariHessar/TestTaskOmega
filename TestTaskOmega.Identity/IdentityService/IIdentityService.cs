@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestTaskOmega.Application.Contracts
+namespace TestTaskOmega.Identity.IdentityService
 {
     public interface IIdentityService
     {

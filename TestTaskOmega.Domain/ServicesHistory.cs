@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace TestTaskOmega.Domain
 {
-    public class BeheshtZahraService : BaseEntity
+    public class ServicesHistory : BaseEntityHistory
     {
-        public string ServiceName { get; set; } = String.Empty;
 
+        public string ServiceName { get; set; } = string.Empty;
+        
     }
 }

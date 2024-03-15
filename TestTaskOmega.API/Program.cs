@@ -1,23 +1,41 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Web;
-using System;
+using TestTaskOmega.Application;
+using TestTaskOmega.Application.Contracts;
+using TestTaskOmega.Application.MappingProfiles;
+using TestTaskOmega.Application.RepositoryPattern;
+using TestTaskOmega.DataAccess;
+using TestTaskOmega.Domain;
 using TestTaskOmega.Identity;
 var builder = WebApplication.CreateBuilder(args);
 // ----------------Identity configurations --------------------------------//
 builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddIdentityCookies();
+    .AddBearerToken(IdentityConstants.BearerScheme);
 builder.Services.AddAuthorizationBuilder();
-builder.Services.AddDbContext<IdentityDbContext>(
-    options => options.UseSqlServer("TestTaskOmegaDatabase"));
+builder.Services.AddDbContext<ApplicationUserDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityDbContext"));
+});
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<IdentityDbContext>();
 builder.Services.AddIdentityCore<ApplicationUser>()
-    .AddEntityFrameworkStores<IdentityDbContext>()
+    .AddEntityFrameworkStores<ApplicationUserDbContext>()
     .AddApiEndpoints();
-// -----------------------------------------------------------------------//
+//-----------------------Services configurations-------------------------//
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDbContext")));
+
+builder.Services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
+builder.Services.AddScoped<IServicesRepository, ServicesRepository>();
+builder.Services.AddHttpContextAccessor();
+//----------------------AutoMapper------------------------------------//
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+
+
+
+
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
