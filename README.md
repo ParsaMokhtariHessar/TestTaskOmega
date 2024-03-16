@@ -1,15 +1,17 @@
-Hi this is a test Task project for possible Employment in the www.Omega.ir company
+Hi, this is a test Task project for possible Employment in the www.Omega.ir company
 
 ###migration commands: assuming we are in /TestTaskOmega/ solution
-for identity : 
+
+adding migration for identity : 
 ```bash
 dotnet ef migrations add "MYmigration" --context ApplicationUserDbcontext --project ./TestTaskOmega.Identity --startup-project ./TestTaskOmega.API
 ```
-for All Enitities we have one which is called <code style="color: green">Services</code>
+adding migration for All Enitities we have one which is called <code style="color: green">Services</code>
 
 ```bash
 dotnet ef migrations add "MYmigration"  --context ApplicationDbcontext --project ./TestTaskOmega.DataAccess --startup-project ./TestTaskOmega.API
 ```
+
 and to update the database :
 
 for identity : 
@@ -20,7 +22,7 @@ for entities :
 ```bash
 dotnet ef database update --context ApplicationDbcontext --project ./TestTaskOmega.DataAccess --startup-project ./TestTaskOmega.API
 ```
-but I have a command in the code that automatically creates and updates the database whenever it is in the developer environment and 
+although I have a command in the code that automatically creates and updates the database whenever it is in the developer environment and 
 we have a pending migration.
 
 there is an admin use seeded in the IdentitySeeds/UserSeed : 
@@ -34,13 +36,16 @@ Password = "P@ssword1"
 ```
 you can log in with that and start creating and managing users. 
 and you can start creating users. You can copy and paste the following :
+
 ```
 {
   "username": "admin",
   "password": "P@ssword1"
 }
 ```
+
 after that you can make a new user using the CreateUser Endpoint (Only Managers can Create a new user):
+
 ```
 {
   "email": "user@user.com",
@@ -48,6 +53,7 @@ after that you can make a new user using the CreateUser Endpoint (Only Managers 
   "password": "P@ssw0rd"
 }
 ```
+
 the project uses JSON Web Token Authentication :
 
 it has swagger UI for automatically attaching your token after you get it click Login and type Bearer yourtokenwithoutparathesis
@@ -58,17 +64,19 @@ if you have a question email me at <email>parsamokhtarihessar@gmail.com</email>
 
 things that remain to do:
 
-implement soft delete to prevent data corruption.
+✓implement soft delete to prevent data corruption.
 
 validation for email.
 
 making EntityHistory more memory efficient!
 
-implement GetAllDeleted(),
+✓implement GetAllDeleted(),
 
-ServiceResponce.cs/ making sure it brings back the correct status code
+✓ServiceResponce.cs/ making sure it brings back the correct status code
 
-User-friendly Exceptions.
+✓User-friendly Exceptions.
+
+extract History Adding logic
 
 Debugg and Polish!
 
