@@ -1,9 +1,13 @@
-﻿using TestTaskOmega.Application.Contracts;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TestTaskOmega.Application.Contracts;
 using TestTaskOmega.Application.Exeptions;
 using TestTaskOmega.Application.RepositoryPattern;
 using TestTaskOmega.Domain;
 
-namespace TestTaskOmega.Application
+namespace TestTaskOmega.Application.ServiceRepository
 {
     public class ServicesRepository : IServicesRepository
     {
@@ -14,13 +18,14 @@ namespace TestTaskOmega.Application
             _serviceRepository = serviceRepository;
         }
 
-        public void Create(string serviceName)
+        public async Task CreateAsync(string serviceName)
         {
             if (serviceName == null)
             {
                 throw new ArgumentNullException(nameof(serviceName), "Service name cannot be null.");
             }
-            var existingService = _serviceRepository.GetAll().FirstOrDefault(s => s.ServiceName == serviceName);
+
+            var existingService = (await _serviceRepository.GetAllAsync()).FirstOrDefault(s => s.ServiceName == serviceName);
             if (existingService != null)
             {
                 throw new EntityNotUniqueException($"Service with name '{serviceName}' already exists.");
@@ -30,66 +35,66 @@ namespace TestTaskOmega.Application
             var newService = new Services { ServiceName = serviceName };
             var newServiceHistory = new ServicesHistory { ServiceName = serviceName };
 
-            _serviceRepository.Create(newService, newServiceHistory);
+            _serviceRepository.CreateAsync(newService, newServiceHistory);
         }
 
-        public void Delete(int id)
+        public async Task DeleteAsync(int id)
         {
             if (id == default)
             {
                 throw new ArgumentException("Service ID cannot be the default value.", nameof(id));
             }
 
-            var service = _serviceRepository.GetById(id);
+            var service = await _serviceRepository.GetByIdAsync(id);
             if (service == null)
             {
                 throw new NotFoundException($"Service with ID {id} not found.");
             }
 
-            var latestHistory = _serviceRepository.GetAllHistoryByIdSortedByLatest(id).FirstOrDefault();
+            var latestHistory = (await _serviceRepository.GetAllHistoryByIdSortedByLatestAsync(id)).FirstOrDefault();
             if (latestHistory == null)
             {
                 throw new NotFoundException($"History record for Service with ID {id} not found.");
             }
 
-            _serviceRepository.Delete(service, latestHistory);
+            _serviceRepository.DeleteAsync(service, latestHistory);
         }
 
-        public IEnumerable<Services> GetAll()
+        public async Task<IEnumerable<Services>> GetAllAsync()
         {
-            return _serviceRepository.GetAll();
+            return await _serviceRepository.GetAllAsync();
         }
 
-        public IEnumerable<ServicesHistory> GetAllHistoryByIdSortedByLatest(int id)
-        {
-            if (id == default)
-            {
-                throw new ArgumentException("Service ID cannot be the default value.", nameof(id));
-            }
-            return _serviceRepository.GetAllHistoryByIdSortedByLatest(id);
-        }
-
-        public Services GetByCreationDate(DateTime creationDate)
-        {
-            return _serviceRepository.GetByCreationDate(creationDate);
-        }
-
-        public Services GetById(int id)
+        public async Task<IEnumerable<ServicesHistory>> GetAllHistoryByIdSortedByLatestAsync(int id)
         {
             if (id == default)
             {
                 throw new ArgumentException("Service ID cannot be the default value.", nameof(id));
             }
-            return _serviceRepository.GetById(id);
+            return await _serviceRepository.GetAllHistoryByIdSortedByLatestAsync(id);
         }
 
-        public Services GetServiceByName(string serviceName)
+        public async Task<Services> GetByCreationDateAsync(DateTime creationDate)
+        {
+            return await _serviceRepository.GetByCreationDateAsync(creationDate);
+        }
+
+        public async Task<Services> GetByIdAsync(int id)
+        {
+            if (id == default)
+            {
+                throw new ArgumentException("Service ID cannot be the default value.", nameof(id));
+            }
+            return await _serviceRepository.GetByIdAsync(id);
+        }
+
+        public async Task<Services> GetServiceByNameAsync(string serviceName)
         {
             if (serviceName == null)
             {
                 throw new ArgumentNullException(nameof(serviceName), "Service name cannot be null.");
             }
-            var service = _serviceRepository.GetAll().FirstOrDefault(s => s.ServiceName == serviceName);
+            var service = (await _serviceRepository.GetAllAsync()).FirstOrDefault(s => s.ServiceName == serviceName);
             if (service == null)
             {
                 throw new NotFoundException($"Service with name '{serviceName}' not found.");
@@ -97,7 +102,7 @@ namespace TestTaskOmega.Application
             return service;
         }
 
-        public void Update(int id, string newServiceName)
+        public async Task UpdateAsync(int id, string newServiceName)
         {
             if (id == default)
             {
@@ -107,20 +112,20 @@ namespace TestTaskOmega.Application
             {
                 throw new ArgumentNullException(nameof(newServiceName), "Service name cannot be null.");
             }
-            var service = _serviceRepository.GetById(id);
+            var service = await _serviceRepository.GetByIdAsync(id);
             if (service == null)
             {
                 throw new NotFoundException($"Service with ID {id} not found.");
             }
 
-            var latestHistory = _serviceRepository.GetAllHistoryByIdSortedByLatest(id).FirstOrDefault();
+            var latestHistory = (await _serviceRepository.GetAllHistoryByIdSortedByLatestAsync(id)).FirstOrDefault();
             if (latestHistory == null)
             {
                 throw new NotFoundException($"History record for Service with ID {id} not found.");
             }
 
             service.ServiceName = newServiceName;
-            _serviceRepository.Update(service,latestHistory);
+            _serviceRepository.UpdateAsync(service, latestHistory);
         }
     }
 }

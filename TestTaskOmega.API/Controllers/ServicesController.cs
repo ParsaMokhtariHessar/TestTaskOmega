@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 using TestTaskOmega.Application.Contracts;
 using TestTaskOmega.Application.Exeptions;
 
@@ -16,11 +19,11 @@ namespace TestTaskOmega.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateService([FromBody] string serviceName)
+        public async Task<IActionResult> CreateServiceAsync([FromBody] string serviceName)
         {
             try
             {
-                _servicesRepository.Create(serviceName);
+                await _servicesRepository.CreateAsync(serviceName);
                 return Ok();
             }
             catch (ArgumentNullException ex)
@@ -38,11 +41,11 @@ namespace TestTaskOmega.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteService(int id)
+        public async Task<IActionResult> DeleteServiceAsync(int id)
         {
             try
             {
-                _servicesRepository.Delete(id);
+                await _servicesRepository.DeleteAsync(id);
                 return Ok();
             }
             catch (NotFoundException ex)
@@ -56,11 +59,11 @@ namespace TestTaskOmega.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllServices()
+        public async Task<IActionResult> GetAllServicesAsync()
         {
             try
             {
-                var services = _servicesRepository.GetAll();
+                var services = await _servicesRepository.GetAllAsync();
                 return Ok(services);
             }
             catch (Exception ex)
@@ -70,11 +73,11 @@ namespace TestTaskOmega.API.Controllers
         }
 
         [HttpGet("{id}/history")]
-        public IActionResult GetAllHistoryForService(int id)
+        public async Task<IActionResult> GetAllHistoryForServiceAsync(int id)
         {
             try
             {
-                var history = _servicesRepository.GetAllHistoryByIdSortedByLatest(id);
+                var history = await _servicesRepository.GetAllHistoryByIdSortedByLatestAsync(id);
                 return Ok(history);
             }
             catch (Exception ex)
@@ -84,11 +87,11 @@ namespace TestTaskOmega.API.Controllers
         }
 
         [HttpGet("by-creation-date/{creationDate}")]
-        public IActionResult GetServiceByCreationDate(DateTime creationDate)
+        public async Task<IActionResult> GetServiceByCreationDateAsync(DateTime creationDate)
         {
             try
             {
-                var service = _servicesRepository.GetByCreationDate(creationDate);
+                var service = await _servicesRepository.GetByCreationDateAsync(creationDate);
                 return Ok(service);
             }
             catch (NotFoundException ex)
@@ -102,11 +105,11 @@ namespace TestTaskOmega.API.Controllers
         }
 
         [HttpGet("by-id/{id}")]
-        public IActionResult GetServiceById(int id)
+        public async Task<IActionResult> GetServiceByIdAsync(int id)
         {
             try
             {
-                var service = _servicesRepository.GetById(id);
+                var service = await _servicesRepository.GetByIdAsync(id);
                 return Ok(service);
             }
             catch (NotFoundException ex)
@@ -120,11 +123,11 @@ namespace TestTaskOmega.API.Controllers
         }
 
         [HttpGet("search")]
-        public IActionResult GetServiceByName([FromQuery] string serviceName)
+        public async Task<IActionResult> GetServiceByNameAsync([FromQuery] string serviceName)
         {
             try
             {
-                var service = _servicesRepository.GetServiceByName(serviceName);
+                var service = await _servicesRepository.GetServiceByNameAsync(serviceName);
                 return Ok(service);
             }
             catch (NotFoundException ex)
@@ -138,11 +141,11 @@ namespace TestTaskOmega.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateService(int id, [FromBody] string newServiceName)
+        public async Task<IActionResult> UpdateServiceAsync(int id, [FromBody] string newServiceName)
         {
             try
             {
-                _servicesRepository.Update(id, newServiceName);
+                await _servicesRepository.UpdateAsync(id, newServiceName);
                 return Ok();
             }
             catch (NotFoundException ex)

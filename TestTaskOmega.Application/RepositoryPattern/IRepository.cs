@@ -1,4 +1,7 @@
-﻿using TestTaskOmega.Domain;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using TestTaskOmega.Domain;
 
 namespace TestTaskOmega.Application.RepositoryPattern
 {
@@ -6,12 +9,12 @@ namespace TestTaskOmega.Application.RepositoryPattern
         where TEntity : BaseEntity
         where TEntityHistory : BaseEntityHistory
     {
-        void Create(TEntity entity, TEntityHistory entityHistory);
-        void Delete(TEntity entity, TEntityHistory entityHistory);
-        IEnumerable<TEntity> GetAll();
-        IEnumerable<TEntityHistory> GetAllHistoryByIdSortedByLatest(int id);
-        TEntity GetByCreationDate(DateTime creationDate);
-        TEntity GetById(int id);
-        void Update(TEntity entity, TEntityHistory entityHistory);
+        Task CreateAsync(TEntity entity, TEntityHistory entityHistory);
+        Task DeleteAsync(TEntity entity, TEntityHistory entityHistory);
+        Task<IEnumerable<TEntity>> GetAllAsync();
+        Task<IEnumerable<TEntityHistory>> GetAllHistoryByIdSortedByLatestAsync(int id);
+        Task<TEntity> GetByCreationDateAsync(DateTime creationDate);
+        Task<TEntity> GetByIdAsync(int id);
+        Task UpdateAsync(TEntity entity, TEntityHistory entityHistory);
     }
 }
