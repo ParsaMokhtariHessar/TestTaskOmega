@@ -5,7 +5,7 @@ for identity :
 ```bash
 dotnet ef add mirgration --context ApplicationUserDbcontext --project ./TestTaskOmega.Identity --startup-project ./TestTaskOmega.API
 ```
-for All Enitities (we have one which is called <style="color:#31A32C;">This text is green!</span>
+for All Enitities (we have one which is called <span style="color:#31A32C;">This text is green!</span>
 
 ```bash
 dotnet ef add mirgration --context ApplicationDbcontext --project ./TestTaskOmega.DataAccess --startup-project ./TestTaskOmega.API
@@ -15,7 +15,7 @@ for identity :
 ```bash
 dotnet ef database update --context ApplicationUserDbcontext --project ./TestTaskOmega.Identity --startup-project ./TestTaskOmega.API
 ```
-for All Enitities (we have one which is called <style="color:#31A32C;">This text is green!</span>
+for All Enitities (we have one which is called <span style="color:#31A32C;">This text is green!</span>
 
 ```bash
 dotnet ef database update --context ApplicationDbcontext --project ./TestTaskOmega.DataAccess --startup-project ./TestTaskOmega.API
