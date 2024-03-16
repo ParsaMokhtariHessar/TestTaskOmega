@@ -16,7 +16,7 @@ for identity :
 ```bash
 dotnet ef database update --context ApplicationUserDbcontext --project ./TestTaskOmega.Identity --startup-project ./TestTaskOmega.API
 ```
-
+for entities :
 ```bash
 dotnet ef database update --context ApplicationDbcontext --project ./TestTaskOmega.DataAccess --startup-project ./TestTaskOmega.API
 ```
