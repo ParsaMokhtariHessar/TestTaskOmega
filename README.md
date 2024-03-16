@@ -10,7 +10,8 @@ for All Enitities we have one which is called <code style="color: green">Service
 ```bash
 dotnet ef add mirgration --context ApplicationDbcontext --project ./TestTaskOmega.DataAccess --startup-project ./TestTaskOmega.API
 ```
-and to update the database : 
+and to update the database :
+
 for identity : 
 ```bash
 dotnet ef database update --context ApplicationUserDbcontext --project ./TestTaskOmega.Identity --startup-project ./TestTaskOmega.API
