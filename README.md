@@ -78,5 +78,7 @@ making EntityHistory more memory efficient!
 
 extract History Adding logic
 
-Debugg and Polish!
+Debugg and Polish! 
+
+{in debugging it must return user Id as part of the claims and it doesn't also the mapping does not work you have to figure it out!}
 
