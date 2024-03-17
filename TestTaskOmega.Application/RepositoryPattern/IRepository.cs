@@ -9,6 +9,7 @@ namespace TestTaskOmega.Application.RepositoryPattern
         where TEntity : BaseEntity
         where TEntityHistory : BaseEntityHistory
     {
+        Task<IEnumerable<TEntity>> GetAllDeletedAsync();
         Task CreateAsync(TEntity entity, TEntityHistory entityHistory);
         Task DeleteAsync(TEntity entity, TEntityHistory entityHistory);
         Task<IEnumerable<TEntity>> GetAllAsync();

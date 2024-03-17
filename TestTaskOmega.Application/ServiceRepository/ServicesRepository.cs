@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using TestTaskOmega.Application.ApplicationModels;
 using TestTaskOmega.Application.Contracts;
-using TestTaskOmega.Application.Exeptions;
 using TestTaskOmega.Application.RepositoryPattern;
 using TestTaskOmega.Domain;
 
@@ -18,114 +14,177 @@ namespace TestTaskOmega.Application.ServiceRepository
             _serviceRepository = serviceRepository;
         }
 
-        public async Task CreateAsync(string serviceName)
+        public async Task<ServiceResponse> CreateAsync(string serviceName)
         {
             if (serviceName == null)
             {
-                throw new ArgumentNullException(nameof(serviceName), "Service name cannot be null.");
+                return new ServiceResponse("Service name cannot be null.");
             }
 
-            var existingService = (await _serviceRepository.GetAllAsync()).FirstOrDefault(s => s.ServiceName == serviceName);
-            if (existingService != null)
+            var existingServiceResponse = await GetServiceByNameAsync(serviceName);
+            if (existingServiceResponse.Success)
             {
-                throw new EntityNotUniqueException($"Service with name '{serviceName}' already exists.");
+                return new ServiceResponse("Service with the same name already exists.");
             }
 
-            // If service name is unique, create the new service
             var newService = new Services { ServiceName = serviceName };
             var newServiceHistory = new ServicesHistory { ServiceName = serviceName };
 
-            _serviceRepository.CreateAsync(newService, newServiceHistory);
+            try
+            {
+                await _serviceRepository.CreateAsync(newService, newServiceHistory);
+                return new ServiceResponse();
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse($"Error creating service: {ex.Message}");
+            }
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task<ServiceResponse> DeleteAsync(int id)
         {
-            if (id == default)
+            var serviceResponse = await GetByIdAsync(id);
+            if (!serviceResponse.Success)
             {
-                throw new ArgumentException("Service ID cannot be the default value.", nameof(id));
+                return new ServiceResponse($"Service Not Found!");
             }
 
-            var service = await _serviceRepository.GetByIdAsync(id);
-            if (service == null)
+            var historyResponse = await GetAllHistoryByIdSortedByLatestAsync(id);
+            if (!historyResponse.Success)
             {
-                throw new NotFoundException($"Service with ID {id} not found.");
+                return new ServiceResponse($"Service History Not Found!");
             }
 
-            var latestHistory = (await _serviceRepository.GetAllHistoryByIdSortedByLatestAsync(id)).FirstOrDefault();
-            if (latestHistory == null)
+            try
             {
-                throw new NotFoundException($"History record for Service with ID {id} not found.");
-            }
+                var latestHistory = historyResponse.Data.FirstOrDefault(); // Assuming the history is sorted by latest
+                if (latestHistory == null)
+                {
+                    return new ServiceResponse("Latest service history not found.");
+                }
 
-            _serviceRepository.DeleteAsync(service, latestHistory);
+                await _serviceRepository.DeleteAsync(serviceResponse.Data, latestHistory);
+                return new ServiceResponse();
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse($"Error deleting service: {ex.Message}");
+            }
         }
 
-        public async Task<IEnumerable<Services>> GetAllAsync()
+        public async Task<ServiceResponse<IEnumerable<Services>>> GetAllAsync()
         {
-            return await _serviceRepository.GetAllAsync();
+            try
+            {
+                var services = await _serviceRepository.GetAllAsync();
+                return new ServiceResponse<IEnumerable<Services>>(services);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<IEnumerable<Services>>($"Error retrieving services: {ex.Message}");
+            }
         }
 
-        public async Task<IEnumerable<ServicesHistory>> GetAllHistoryByIdSortedByLatestAsync(int id)
+        public async Task<ServiceResponse<IEnumerable<ServicesHistory>>> GetAllHistoryByIdSortedByLatestAsync(int id)
         {
-            if (id == default)
+            try
             {
-                throw new ArgumentException("Service ID cannot be the default value.", nameof(id));
+                var history = await _serviceRepository.GetAllHistoryByIdSortedByLatestAsync(id);
+                return new ServiceResponse<IEnumerable<ServicesHistory>>(history);
             }
-            return await _serviceRepository.GetAllHistoryByIdSortedByLatestAsync(id);
+            catch (Exception ex)
+            {
+                return new ServiceResponse<IEnumerable<ServicesHistory>>($"Error retrieving service history: {ex.Message}");
+            }
         }
 
-        public async Task<Services> GetByCreationDateAsync(DateTime creationDate)
+        public async Task<ServiceResponse<Services>> GetByCreationDateAsync(DateTime creationDate)
         {
-            return await _serviceRepository.GetByCreationDateAsync(creationDate);
+            try
+            {
+                var service = await _serviceRepository.GetByCreationDateAsync(creationDate);
+                return new ServiceResponse<Services>(service);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<Services>($"Error retrieving service by creation date: {ex.Message}");
+            }
         }
 
-        public async Task<Services> GetByIdAsync(int id)
+        public async Task<ServiceResponse<Services>> GetByIdAsync(int id)
         {
-            if (id == default)
+            try
             {
-                throw new ArgumentException("Service ID cannot be the default value.", nameof(id));
+                var service = await _serviceRepository.GetByIdAsync(id);
+                return new ServiceResponse<Services>(service);
             }
-            return await _serviceRepository.GetByIdAsync(id);
+            catch (Exception ex)
+            {
+                return new ServiceResponse<Services>($"Error retrieving service by ID: {ex.Message}");
+            }
         }
 
-        public async Task<Services> GetServiceByNameAsync(string serviceName)
+        public async Task<ServiceResponse<Services>> GetServiceByNameAsync(string serviceName)
         {
-            if (serviceName == null)
+            try
             {
-                throw new ArgumentNullException(nameof(serviceName), "Service name cannot be null.");
+                var services = await _serviceRepository.GetAllAsync();
+                var service = services.FirstOrDefault(s => s.ServiceName == serviceName);
+
+                if (service == null)
+                {
+                    return new ServiceResponse<Services>($"Service with name '{serviceName}' not found.");
+                }
+
+                return new ServiceResponse<Services>(service);
             }
-            var service = (await _serviceRepository.GetAllAsync()).FirstOrDefault(s => s.ServiceName == serviceName);
-            if (service == null)
+            catch (Exception ex)
             {
-                throw new NotFoundException($"Service with name '{serviceName}' not found.");
+                return new ServiceResponse<Services>($"Error retrieving service by name: {ex.Message}");
             }
-            return service;
         }
 
-        public async Task UpdateAsync(int id, string newServiceName)
+        public async Task<ServiceResponse> UpdateAsync(int id, string newServiceName)
         {
-            if (id == default)
+            var existingServiceResponse = await GetByIdAsync(id);
+            if (!existingServiceResponse.Success)
             {
-                throw new ArgumentException("Service ID cannot be the default value.", nameof(id));
-            }
-            if (newServiceName == null)
-            {
-                throw new ArgumentNullException(nameof(newServiceName), "Service name cannot be null.");
-            }
-            var service = await _serviceRepository.GetByIdAsync(id);
-            if (service == null)
-            {
-                throw new NotFoundException($"Service with ID {id} not found.");
+                return new ServiceResponse("Service to be updated does not exist.");
             }
 
-            var latestHistory = (await _serviceRepository.GetAllHistoryByIdSortedByLatestAsync(id)).FirstOrDefault();
-            if (latestHistory == null)
+            var existingService = existingServiceResponse.Data;
+            var existingHistory = (await GetAllHistoryByIdSortedByLatestAsync(id)).Data.FirstOrDefault();
+
+            if (existingHistory == null)
             {
-                throw new NotFoundException($"History record for Service with ID {id} not found.");
+                return new ServiceResponse("Service history not found.");
             }
 
-            service.ServiceName = newServiceName;
-            _serviceRepository.UpdateAsync(service, latestHistory);
+            existingService.ServiceName = newServiceName;
+            existingHistory.ServiceName = newServiceName;
+
+            try
+            {
+                await _serviceRepository.UpdateAsync(existingService, existingHistory);
+                return new ServiceResponse();
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse($"Error updating service: {ex.Message}");
+            }
+        }
+
+        public async Task<ServiceResponse<IEnumerable<Services>>> GetAllDeletedAsync()
+        {
+            try
+            {
+                var deletedServices = await _serviceRepository.GetAllDeletedAsync();
+                return new ServiceResponse<IEnumerable<Services>>(deletedServices);
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<IEnumerable<Services>>($"Error retrieving deleted services: {ex.Message}");
+            }
         }
     }
 }

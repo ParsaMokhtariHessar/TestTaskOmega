@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
+using TestTaskOmega.Application.ApplicationModels;
 using TestTaskOmega.Application.Contracts;
-using TestTaskOmega.Application.Exeptions;
 
 namespace TestTaskOmega.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ServicesController : ControllerBase
     {
         private readonly IServicesRepository _servicesRepository;
@@ -21,145 +20,94 @@ namespace TestTaskOmega.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateServiceAsync([FromBody] string serviceName)
         {
-            try
-            {
-                await _servicesRepository.CreateAsync(serviceName);
-                return Ok();
-            }
-            catch (ArgumentNullException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (EntityNotUniqueException ex)
-            {
-                return Conflict(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var response = await _servicesRepository.CreateAsync(serviceName);
+            return HandleResponse(response);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteServiceAsync(int id)
         {
-            try
-            {
-                await _servicesRepository.DeleteAsync(id);
-                return Ok();
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var response = await _servicesRepository.DeleteAsync(id);
+            return HandleResponse(response);
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllServicesAsync()
         {
-            try
-            {
-                var services = await _servicesRepository.GetAllAsync();
-                return Ok(services);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var response = await _servicesRepository.GetAllAsync();
+            return HandleResponse(response);
         }
 
         [HttpGet("{id}/history")]
         public async Task<IActionResult> GetAllHistoryForServiceAsync(int id)
         {
-            try
-            {
-                var history = await _servicesRepository.GetAllHistoryByIdSortedByLatestAsync(id);
-                return Ok(history);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var response = await _servicesRepository.GetAllHistoryByIdSortedByLatestAsync(id);
+            return HandleResponse(response);
         }
 
         [HttpGet("by-creation-date/{creationDate}")]
         public async Task<IActionResult> GetServiceByCreationDateAsync(DateTime creationDate)
         {
-            try
-            {
-                var service = await _servicesRepository.GetByCreationDateAsync(creationDate);
-                return Ok(service);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var response = await _servicesRepository.GetByCreationDateAsync(creationDate);
+            return HandleResponse(response);
         }
 
         [HttpGet("by-id/{id}")]
         public async Task<IActionResult> GetServiceByIdAsync(int id)
         {
-            try
-            {
-                var service = await _servicesRepository.GetByIdAsync(id);
-                return Ok(service);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var response = await _servicesRepository.GetByIdAsync(id);
+            return HandleResponse(response);
         }
 
         [HttpGet("search")]
         public async Task<IActionResult> GetServiceByNameAsync([FromQuery] string serviceName)
         {
-            try
-            {
-                var service = await _servicesRepository.GetServiceByNameAsync(serviceName);
-                return Ok(service);
-            }
-            catch (NotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
+            var response = await _servicesRepository.GetServiceByNameAsync(serviceName);
+            return HandleResponse(response);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateServiceAsync(int id, [FromBody] string newServiceName)
         {
-            try
+            var response = await _servicesRepository.UpdateAsync(id, newServiceName);
+            return HandleResponse(response);
+        }
+
+        [HttpGet("deleted")]
+        public async Task<IActionResult> GetAllDeletedServicesAsync()
+        {
+            var response = await _servicesRepository.GetAllDeletedAsync();
+            return HandleResponse(response);
+        }
+
+        private IActionResult HandleResponse(ServiceResponse response)
+        {
+            if (response.Success)
             {
-                await _servicesRepository.UpdateAsync(id, newServiceName);
                 return Ok();
             }
-            catch (NotFoundException ex)
+
+            if (response.Message == "Service Not Found!" || response.Message == "Service History Not Found!")
             {
-                return NotFound(ex.Message);
+                return NotFound(response.Message);
             }
-            catch (ArgumentNullException ex)
+
+            return StatusCode(StatusCodes.Status500InternalServerError, response.Message);
+        }
+
+        private IActionResult HandleResponse<T>(ServiceResponse<T> response)
+        {
+            if (response.Success)
             {
-                return BadRequest(ex.Message);
+                return Ok(response.Data);
             }
-            catch (Exception ex)
+
+            if (response.Message == "Service Not Found!" || response.Message == "Service History Not Found!")
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return NotFound(response.Message);
             }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, response.Message);
         }
     }
 }

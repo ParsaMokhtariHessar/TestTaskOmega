@@ -101,15 +101,27 @@ namespace TestTaskOmega.Application.RepositoryPattern
             var existingEntity = await _dbContext.Set<TEntity>().FindAsync(entity.Id);
             if (existingEntity != null)
             {
-                var userId = GetUserIdFromClaims(_httpContextAccessor);
+                var DeleteTime = DateTime.UtcNow;
+                var DeleterId = GetUserIdFromClaims(_httpContextAccessor) ?? 0;
                 entityHistory.EntityId = existingEntity.Id;
-                entityHistory.DeletedAt = DateTime.UtcNow;
-                entityHistory.DeletedBy = userId.HasValue ? userId.Value : 0;
+                entityHistory.DeletedAt = DeleteTime;
+                entityHistory.DeletedBy = DeleterId;
                 _dbContext.Set<TEntityHistory>().Add(entityHistory);
-                _dbContext.Set<TEntity>().Remove(entity);
+
+                existingEntity.DeletedAt = DeleteTime;
+                existingEntity.DeletedBy = DeleterId;               
                 await _dbContext.SaveChangesAsync();
             }
         }
+
+        public async Task<IEnumerable<TEntity>>GetAllDeletedAsync()
+        {
+            return await _dbContext.Set<TEntity>()
+                .Where(e => e.DeletedAt != default)
+                .ToListAsync();
+        }
+
+
 
         private int? GetUserIdFromClaims(IHttpContextAccessor httpContextAccessor)
         {
@@ -132,6 +144,8 @@ namespace TestTaskOmega.Application.RepositoryPattern
             }
             .Max();
         }
+
+        
     }
 }
 

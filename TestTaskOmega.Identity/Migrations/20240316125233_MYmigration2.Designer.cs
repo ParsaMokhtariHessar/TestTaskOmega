@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TestTaskOmega.Identity.IdentityData;
 
@@ -11,9 +12,11 @@ using TestTaskOmega.Identity.IdentityData;
 namespace TestTaskOmega.Identity.Migrations
 {
     [DbContext(typeof(ApplicationUserDbContext))]
-    partial class ApplicationUserDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240316125233_MYmigration2")]
+    partial class MYmigration2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

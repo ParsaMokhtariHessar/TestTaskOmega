@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using TestTaskOmega.Application.ApplicationModels;
 using TestTaskOmega.Domain;
 
 namespace TestTaskOmega.Application.Contracts
 {
     public interface IServicesRepository
     {
-        // Query
-        Task<Services> GetByIdAsync(int id);
-        Task<IEnumerable<Services>> GetAllAsync();
-        Task<IEnumerable<ServicesHistory>> GetAllHistoryByIdSortedByLatestAsync(int id);
-        Task<Services> GetByCreationDateAsync(DateTime creationDate);
-        Task<Services> GetServiceByNameAsync(string serviceName);
-
-        // Command
-        Task CreateAsync(string serviceName);
-        Task DeleteAsync(int id);
-        Task UpdateAsync(int id, string newServiceName);
+        Task<ServiceResponse<Services>> GetByIdAsync(int id);
+        Task<ServiceResponse<IEnumerable<Services>>> GetAllAsync();
+        Task<ServiceResponse<IEnumerable<ServicesHistory>>> GetAllHistoryByIdSortedByLatestAsync(int id);
+        Task<ServiceResponse<Services>> GetByCreationDateAsync(DateTime creationDate);
+        Task<ServiceResponse<Services>> GetServiceByNameAsync(string serviceName);
+        Task<ServiceResponse<IEnumerable<Services>>> GetAllDeletedAsync();
+        Task<ServiceResponse> CreateAsync(string serviceName);
+        Task<ServiceResponse> DeleteAsync(int id);
+        Task<ServiceResponse> UpdateAsync(int id, string newServiceName);
     }
 }
+

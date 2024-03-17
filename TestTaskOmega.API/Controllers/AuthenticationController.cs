@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TestTaskOmega.API.Dtos;
 using TestTaskOmega.Identity.IdentityServices.AuthenticationService;
 
 namespace TestTaskOmega.API.Controllers
@@ -15,11 +17,11 @@ namespace TestTaskOmega.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login([FromBody] string username, [FromBody] string password)
+        public async Task<ActionResult<string>> Login([FromBody] LoginDto loginDto)
         {
             try
             {
-                var token = await _authenticationService.Login(username, password);
+                var token = await _authenticationService.Login(loginDto.Username, loginDto.Password);
                 return Ok(new { Token = token });
             }
             catch (Exception ex)
@@ -27,15 +29,14 @@ namespace TestTaskOmega.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        //This has to be Authorized and only by admin
+
         [HttpPost("create")]
-        public async Task<ActionResult<string>> CreateUser([FromBody] string email,
-                                                           [FromBody] string username,
-                                                           [FromBody] string password)
+        [Authorize(Roles = "Manager")]
+        public async Task<ActionResult<string>> CreateUser([FromBody] CreateUserDto createUserDto)
         {
             try
             {
-                var userId = await _authenticationService.CreateUser(email, username, password);
+                var userId = await _authenticationService.CreateUser(createUserDto.Email, createUserDto.Username, createUserDto.Password);
                 return Ok(new { UserId = userId });
             }
             catch (Exception ex)

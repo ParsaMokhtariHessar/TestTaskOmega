@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TestTaskOmega.Identity.IdentityModels;
 using TestTaskOmega.Identity.IdentityServices.UserManagmentService;
@@ -7,6 +8,7 @@ namespace TestTaskOmega.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Policy = "ManagerOnly")]
     public class UserController : ControllerBase
     {
         private readonly IUserManagementService _userManagementService;
@@ -45,4 +47,4 @@ namespace TestTaskOmega.API.Controllers
         }
     }
 }
-}
+
