@@ -41,7 +41,7 @@ namespace TestTaskOmega.API.Controllers
         [HttpGet("{id}/history")]
         public async Task<IActionResult> GetAllHistoryForServiceAsync(int id)
         {
-            var response = await _servicesRepository.GetAllHistoryByIdSortedByLatestAsync(id);
+            var response = await _servicesRepository.GetHistory(id);
             return HandleResponse(response);
         }
 

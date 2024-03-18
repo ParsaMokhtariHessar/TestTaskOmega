@@ -1,15 +1,17 @@
 ﻿using TestTaskOmega.Application.ApplicationModels;
-using TestTaskOmega.Application.Contracts;
-using TestTaskOmega.Application.RepositoryPattern;
 using TestTaskOmega.Domain;
+using TestTaskOmega.Application.RepositoryPattern;
+using TestTaskOmega.Domain.Utilities;
+using TestTaskOmega.Application.Contracts;
+using TestTaskOmega.Application.Exeptions;
 
 namespace TestTaskOmega.Application.ServiceRepository
 {
     public class ServicesRepository : IServicesRepository
     {
-        private readonly IRepository<Services, ServicesHistory> _serviceRepository;
+        private readonly IRepository<Services, string> _serviceRepository;
 
-        public ServicesRepository(IRepository<Services, ServicesHistory> serviceRepository)
+        public ServicesRepository(IRepository<Services, string> serviceRepository)
         {
             _serviceRepository = serviceRepository;
         }
@@ -28,11 +30,10 @@ namespace TestTaskOmega.Application.ServiceRepository
             }
 
             var newService = new Services { ServiceName = serviceName };
-            var newServiceHistory = new ServicesHistory { ServiceName = serviceName };
 
             try
             {
-                await _serviceRepository.CreateAsync(newService, newServiceHistory);
+                await _serviceRepository.CreateAsync(newService);
                 return new ServiceResponse();
             }
             catch (Exception ex)
@@ -49,27 +50,27 @@ namespace TestTaskOmega.Application.ServiceRepository
                 return new ServiceResponse($"Service Not Found!");
             }
 
-            var historyResponse = await GetAllHistoryByIdSortedByLatestAsync(id);
-            if (!historyResponse.Success)
-            {
-                return new ServiceResponse($"Service History Not Found!");
-            }
-
             try
             {
-                var latestHistory = historyResponse.Data.FirstOrDefault(); // Assuming the history is sorted by latest
-                if (latestHistory == null)
-                {
-                    return new ServiceResponse("Latest service history not found.");
-                }
-
-                await _serviceRepository.DeleteAsync(serviceResponse.Data, latestHistory);
+                await _serviceRepository.DeleteAsync(serviceResponse.Data);
                 return new ServiceResponse();
             }
             catch (Exception ex)
             {
                 return new ServiceResponse($"Error deleting service: {ex.Message}");
             }
+        }
+
+        public async Task<ServiceResponse<IEnumerable<Modifications<string>>>> GetHistory(int id)
+        {
+            var serviceResponse = await GetByIdAsync(id);
+            if (!serviceResponse.Success)
+            {
+                return new ServiceResponse<IEnumerable<Modifications<string>>>($"Service Not Found!");
+            }
+
+            var history = await _serviceRepository.GetHistory(serviceResponse.Data);
+            return new ServiceResponse<IEnumerable<Modifications<string>>>(history);
         }
 
         public async Task<ServiceResponse<IEnumerable<Services>>> GetAllAsync()
@@ -85,25 +86,16 @@ namespace TestTaskOmega.Application.ServiceRepository
             }
         }
 
-        public async Task<ServiceResponse<IEnumerable<ServicesHistory>>> GetAllHistoryByIdSortedByLatestAsync(int id)
-        {
-            try
-            {
-                var history = await _serviceRepository.GetAllHistoryByIdSortedByLatestAsync(id);
-                return new ServiceResponse<IEnumerable<ServicesHistory>>(history);
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResponse<IEnumerable<ServicesHistory>>($"Error retrieving service history: {ex.Message}");
-            }
-        }
-
         public async Task<ServiceResponse<Services>> GetByCreationDateAsync(DateTime creationDate)
         {
             try
             {
                 var service = await _serviceRepository.GetByCreationDateAsync(creationDate);
                 return new ServiceResponse<Services>(service);
+            }
+            catch (NotFoundException ex)
+            {
+                return new ServiceResponse<Services>($"Entity with creationDate {creationDate} not found.");
             }
             catch (Exception ex)
             {
@@ -153,19 +145,11 @@ namespace TestTaskOmega.Application.ServiceRepository
             }
 
             var existingService = existingServiceResponse.Data;
-            var existingHistory = (await GetAllHistoryByIdSortedByLatestAsync(id)).Data.FirstOrDefault();
-
-            if (existingHistory == null)
-            {
-                return new ServiceResponse("Service history not found.");
-            }
-
             existingService.ServiceName = newServiceName;
-            existingHistory.ServiceName = newServiceName;
 
             try
             {
-                await _serviceRepository.UpdateAsync(existingService, existingHistory);
+                await _serviceRepository.UpdateAsync(existingService);
                 return new ServiceResponse();
             }
             catch (Exception ex)

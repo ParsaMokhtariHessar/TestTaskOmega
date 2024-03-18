@@ -1,151 +1,105 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using TestTaskOmega.Application.Exeptions;
 using TestTaskOmega.DataAccess;
 using TestTaskOmega.Domain;
+using TestTaskOmega.Domain.Utilities;
 
 namespace TestTaskOmega.Application.RepositoryPattern
 {
-    public class Repository<TEntity, TEntityHistory> : IRepository<TEntity, TEntityHistory>
-        where TEntity : BaseEntity
-        where TEntityHistory : BaseEntityHistory
-    {
-        private readonly ApplicationDbContext _dbContext;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IMapper _mapper;
+    
 
-        public Repository(ApplicationDbContext dbContext,
-                            IHttpContextAccessor httpContextAccessor,
-                            IMapper mapper)
+    
+        public class Repository<TEntity, T> : IRepository<TEntity, T> where TEntity : BaseEntity<T>
         {
-            _dbContext = dbContext;
-            _httpContextAccessor = httpContextAccessor;
-            _mapper = mapper;
-        }
+            private readonly ApplicationDbContext _dbContext;
+            private readonly IHttpContextAccessor _httpContextAccessor;
+            private readonly IMapper _mapper;
 
-        public async Task<TEntity> GetByIdAsync(int id)
-        {
-            var entity = await _dbContext.Set<TEntity>().FindAsync(id);
-
-            if (entity == null)
+            public Repository(ApplicationDbContext dbContext,
+                                IHttpContextAccessor httpContextAccessor,
+                                IMapper mapper)
             {
-                throw new NotFoundException($"Entity with ID {id} not found.");
+                _dbContext = dbContext;
+                _httpContextAccessor = httpContextAccessor;
+                _mapper = mapper;
             }
 
-            return entity;
-        }
-
-        public async Task<TEntity> GetByCreationDateAsync(DateTime creationDate)
-        {
-            var entity = await _dbContext.Set<TEntity>()
-                .FirstOrDefaultAsync(e => e.CreatedAt.Date == creationDate.Date);
-
-            if (entity == null)
+            public async Task<IEnumerable<TEntity>> GetAllAsync()
             {
-                throw new NotFoundException($"Entity with creationDate {creationDate} not found.");
+                return await _dbContext.Set<TEntity>().ToListAsync();
             }
 
-            return entity;
-        }
-
-        public async Task<IEnumerable<TEntityHistory>> GetAllHistoryByIdSortedByLatestAsync(int id)
-        {
-            return await _dbContext.Set<TEntityHistory>()
-                .Where(history => history.EntityId == id)
-                .OrderByDescending(history => GetLatestDate(history))
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<TEntity>> GetAllAsync()
-        {
-            return await _dbContext.Set<TEntity>().ToListAsync();
-        }
-
-        public async Task CreateAsync(TEntity entity, TEntityHistory entityHistory)
-        {
-            var userId = GetUserIdFromClaims(_httpContextAccessor);
-            entity.CreatedAt = DateTime.UtcNow;
-            entity.CreatedBy = userId.HasValue ? userId.Value : 0;
-            entityHistory = _mapper.Map<TEntityHistory>(entity);
-            await _dbContext.Set<TEntity>().AddAsync(entity);
-            await _dbContext.Set<TEntityHistory>().AddAsync(entityHistory);
-            await _dbContext.SaveChangesAsync();
-        }
-
-        public async Task UpdateAsync(TEntity entity, TEntityHistory entityHistory)
-        {
-            var existingEntity = await _dbContext.Set<TEntity>().FindAsync(entity.Id);
-            if (existingEntity != null)
+            public async Task<IEnumerable<TEntity>> GetAllDeletedAsync()
             {
-                var modificatonTime = DateTime.UtcNow;
+                return await _dbContext.Set<TEntity>().Where(e => e.IsDeleted).ToListAsync();
+            }
+
+            public async Task<TEntity> GetByIdAsync(int id)
+            {
+                var entity = await _dbContext.Set<TEntity>().FindAsync(id);
+
+                if (entity == null)
+                {
+                    throw new NotFoundException($"Entity with ID {id} not found.");
+                }
+
+                return entity;
+            }
+
+            public async Task<TEntity> GetByCreationDateAsync(DateTime creationDate)
+            {
+                var entity = await _dbContext.Set<TEntity>()
+                    .FirstOrDefaultAsync(e => e.CreatedAt.Date == creationDate.Date);
+
+                if (entity == null)
+                {
+                    throw new NotFoundException($"Entity with creationDate {creationDate} not found.");
+                }
+
+                return entity;
+            }
+
+            public async Task<IEnumerable<Modifications<T>>> GetHistory(TEntity entity)
+            {
+                return await Task.FromResult(entity.Modifications);
+            }
+
+        public async Task CreateAsync(TEntity entity)
+            {
                 var userId = GetUserIdFromClaims(_httpContextAccessor);
-                entityHistory.EntityId = existingEntity.Id;
-                entityHistory.ModifiedAt = modificatonTime;
-                entityHistory.ModifiedBy = userId.HasValue ? userId.Value : 0;
-
-                existingEntity.ModifiedAt = modificatonTime;
-                existingEntity.ModifiedBy = userId.HasValue ? userId.Value : 0;
-                _dbContext.Set<TEntityHistory>().Add(entityHistory);
+                entity.CreatedAt = DateTime.UtcNow;
+                entity.CreatedBy = userId ?? 0;
+                _dbContext.Set<TEntity>().Add(entity);
                 await _dbContext.SaveChangesAsync();
             }
-        }
 
-        public async Task DeleteAsync(TEntity entity, TEntityHistory entityHistory)
-        {
-            var existingEntity = await _dbContext.Set<TEntity>().FindAsync(entity.Id);
-            if (existingEntity != null)
+            public async Task UpdateAsync(TEntity entity)
             {
-                var DeleteTime = DateTime.UtcNow;
-                var DeleterId = GetUserIdFromClaims(_httpContextAccessor) ?? 0;
-                entityHistory.EntityId = existingEntity.Id;
-                entityHistory.DeletedAt = DeleteTime;
-                entityHistory.DeletedBy = DeleterId;
-                _dbContext.Set<TEntityHistory>().Add(entityHistory);
-
-                existingEntity.DeletedAt = DeleteTime;
-                existingEntity.DeletedBy = DeleterId;               
+                _dbContext.Entry(entity).State = EntityState.Modified;
                 await _dbContext.SaveChangesAsync();
             }
-        }
 
-        public async Task<IEnumerable<TEntity>>GetAllDeletedAsync()
-        {
-            return await _dbContext.Set<TEntity>()
-                .Where(e => e.DeletedAt != default)
-                .ToListAsync();
-        }
-
-
-
-        private int? GetUserIdFromClaims(IHttpContextAccessor httpContextAccessor)
-        {
-            var httpContext = httpContextAccessor.HttpContext;
-            var userIdClaim = httpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            public async Task DeleteAsync(TEntity entity)
             {
-                return userId;
+                entity.Delete(GetUserIdFromClaims(_httpContextAccessor) ?? 0);
+                _dbContext.Entry(entity).State = EntityState.Modified;
+                await _dbContext.SaveChangesAsync();
             }
-            return null;
-        }
 
-        private DateTime GetLatestDate(TEntityHistory history)
-        {
-            return new[]
+            private int? GetUserIdFromClaims(IHttpContextAccessor httpContextAccessor)
             {
-                history.CreatedAt,
-                history.ModifiedAt,
-                history.DeletedAt
+                var httpContext = httpContextAccessor.HttpContext;
+                var userIdClaim = httpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return userId;
+                }
+                return null;
             }
-            .Max();
         }
-
-        
-    }
+    
 }
 
