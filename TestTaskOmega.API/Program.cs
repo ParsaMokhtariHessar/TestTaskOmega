@@ -1,14 +1,7 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using TestTaskOmega.Application;
-using TestTaskOmega.Application.Contracts;
-using TestTaskOmega.Application.MappingProfiles;
-using TestTaskOmega.Application.RepositoryPattern;
 using TestTaskOmega.DataAccess;
-using TestTaskOmega.Domain;
 using TestTaskOmega.Identity;
 var builder = WebApplication.CreateBuilder(args);
 // ----------------Identity configurations --------------------------------//

@@ -8,9 +8,9 @@ namespace TestTaskOmega.Application.ApplicationModels
 {
     public class ServiceResponse<T>
     {
-        public T Data { get; set; }
+        public T? Data { get; set; }
         public bool Success { get; set; }
-        public string Message { get; set; }
+        public string? Message { get; set; }
 
         public ServiceResponse()
         {
@@ -38,6 +38,7 @@ namespace TestTaskOmega.Application.ApplicationModels
         public ServiceResponse()
         {
             Success = true;
+            Message = "The Operation Executed successfully";
         }
 
         public ServiceResponse(string message)

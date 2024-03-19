@@ -1,6 +1,5 @@
 ﻿using TestTaskOmega.Application.ApplicationModels;
 using TestTaskOmega.Domain;
-using TestTaskOmega.Domain.Utilities;
 
 namespace TestTaskOmega.Application.Contracts
 {
@@ -8,7 +7,7 @@ namespace TestTaskOmega.Application.Contracts
     {
         Task<ServiceResponse<Services>> GetByIdAsync(int id);
         Task<ServiceResponse<IEnumerable<Services>>> GetAllAsync();
-        Task<ServiceResponse<IEnumerable<Modifications<string>>>> GetHistory(int id);
+        Task<ServiceResponse<IEnumerable<EntityModification<string>>>> GetHistory(int id);
         Task<ServiceResponse<Services>> GetByCreationDateAsync(DateTime creationDate);
         Task<ServiceResponse<Services>> GetServiceByNameAsync(string serviceName);
         Task<ServiceResponse<IEnumerable<Services>>> GetAllDeletedAsync();

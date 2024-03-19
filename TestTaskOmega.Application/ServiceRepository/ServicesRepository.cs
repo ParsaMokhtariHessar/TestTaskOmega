@@ -1,7 +1,6 @@
 ﻿using TestTaskOmega.Application.ApplicationModels;
 using TestTaskOmega.Domain;
 using TestTaskOmega.Application.RepositoryPattern;
-using TestTaskOmega.Domain.Utilities;
 using TestTaskOmega.Application.Contracts;
 using TestTaskOmega.Application.Exeptions;
 
@@ -28,12 +27,9 @@ namespace TestTaskOmega.Application.ServiceRepository
             {
                 return new ServiceResponse("Service with the same name already exists.");
             }
-
-            var newService = new Services { ServiceName = serviceName };
-
             try
             {
-                await _serviceRepository.CreateAsync(newService);
+                await _serviceRepository.CreateAsync(serviceName);
                 return new ServiceResponse();
             }
             catch (Exception ex)
@@ -42,17 +38,17 @@ namespace TestTaskOmega.Application.ServiceRepository
             }
         }
 
-        public async Task<ServiceResponse> DeleteAsync(int id)
+        public async Task<ServiceResponse> DeleteAsync(int Entityid)
         {
-            var serviceResponse = await GetByIdAsync(id);
-            if (!serviceResponse.Success)
+            var serviceResponse = await GetByIdAsync(Entityid);
+            if (!serviceResponse.Success || serviceResponse.Data == null)
             {
                 return new ServiceResponse($"Service Not Found!");
             }
 
             try
             {
-                await _serviceRepository.DeleteAsync(serviceResponse.Data);
+                await _serviceRepository.DeleteAsync(Entityid);
                 return new ServiceResponse();
             }
             catch (Exception ex)
@@ -61,16 +57,16 @@ namespace TestTaskOmega.Application.ServiceRepository
             }
         }
 
-        public async Task<ServiceResponse<IEnumerable<Modifications<string>>>> GetHistory(int id)
+        public async Task<ServiceResponse<IEnumerable<EntityModification<string>>>> GetHistory(int Entityid)
         {
-            var serviceResponse = await GetByIdAsync(id);
-            if (!serviceResponse.Success)
+            var serviceResponse = await GetByIdAsync(Entityid);
+            if (!serviceResponse.Success || serviceResponse.Data == null)
             {
-                return new ServiceResponse<IEnumerable<Modifications<string>>>($"Service Not Found!");
+                return new ServiceResponse<IEnumerable<EntityModification<string>>>($"Service Not Found!");
             }
 
-            var history = await _serviceRepository.GetHistory(serviceResponse.Data);
-            return new ServiceResponse<IEnumerable<Modifications<string>>>(history);
+            var history = await _serviceRepository.GetHistory(Entityid);
+            return new ServiceResponse<IEnumerable<EntityModification<string>>>(history);
         }
 
         public async Task<ServiceResponse<IEnumerable<Services>>> GetAllAsync()
@@ -93,7 +89,7 @@ namespace TestTaskOmega.Application.ServiceRepository
                 var service = await _serviceRepository.GetByCreationDateAsync(creationDate);
                 return new ServiceResponse<Services>(service);
             }
-            catch (NotFoundException ex)
+            catch (NotFoundException)
             {
                 return new ServiceResponse<Services>($"Entity with creationDate {creationDate} not found.");
             }
@@ -120,9 +116,7 @@ namespace TestTaskOmega.Application.ServiceRepository
         {
             try
             {
-                var services = await _serviceRepository.GetAllAsync();
-                var service = services.FirstOrDefault(s => s.ServiceName == serviceName);
-
+                var service = await _serviceRepository.GetByValue(serviceName);
                 if (service == null)
                 {
                     return new ServiceResponse<Services>($"Service with name '{serviceName}' not found.");
@@ -136,20 +130,22 @@ namespace TestTaskOmega.Application.ServiceRepository
             }
         }
 
-        public async Task<ServiceResponse> UpdateAsync(int id, string newServiceName)
+        public async Task<ServiceResponse> UpdateAsync(int Entityid, string newServiceName)
         {
-            var existingServiceResponse = await GetByIdAsync(id);
-            if (!existingServiceResponse.Success)
+            var existingServiceResponse = await GetByIdAsync(Entityid);
+            if (!existingServiceResponse.Success || existingServiceResponse.Data == null)
             {
                 return new ServiceResponse("Service to be updated does not exist.");
             }
 
-            var existingService = existingServiceResponse.Data;
-            existingService.ServiceName = newServiceName;
-
+            if(existingServiceResponse.Data.ServiceName == newServiceName)
+            {
+                return new ServiceResponse("You did not change the Service!");
+            }
+                       
             try
             {
-                await _serviceRepository.UpdateAsync(existingService);
+                await _serviceRepository.UpdateAsync(Entityid, newServiceName);
                 return new ServiceResponse();
             }
             catch (Exception ex)

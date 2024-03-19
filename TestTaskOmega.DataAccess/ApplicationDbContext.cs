@@ -4,15 +4,9 @@ using TestTaskOmega.Domain;
 
 namespace TestTaskOmega.DataAccess
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-        {
-
-        }
-
         public DbSet<Services> Services { get; set; }
-        public DbSet<ServicesHistory> ServicesHistory { get; set; }
-        
+        //
     }
 }
