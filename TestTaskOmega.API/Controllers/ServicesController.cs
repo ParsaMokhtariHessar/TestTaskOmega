@@ -24,10 +24,10 @@ namespace TestTaskOmega.API.Controllers
             return HandleResponse(response);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteServiceAsync(int id)
+        [HttpDelete("{Entityid}")]
+        public async Task<IActionResult> DeleteServiceAsync(int Entityid)
         {
-            var response = await _servicesRepository.DeleteAsync(id);
+            var response = await _servicesRepository.DeleteAsync(Entityid);
             return HandleResponse(response);
         }
 
@@ -38,10 +38,10 @@ namespace TestTaskOmega.API.Controllers
             return HandleResponse(response);
         }
 
-        [HttpGet("{id}/history")]
-        public async Task<IActionResult> GetAllHistoryForServiceAsync(int id)
+        [HttpGet("{Entityid}/history")]
+        public async Task<IActionResult> GetAllHistoryForServiceAsync(int Entityid)
         {
-            var response = await _servicesRepository.GetHistory(id);
+            var response = await _servicesRepository.GetHistory(Entityid);
             return HandleResponse(response);
         }
 
@@ -52,10 +52,10 @@ namespace TestTaskOmega.API.Controllers
             return HandleResponse(response);
         }
 
-        [HttpGet("by-id/{id}")]
-        public async Task<IActionResult> GetServiceByIdAsync(int id)
+        [HttpGet("by-Entityid/{Entityid}")]
+        public async Task<IActionResult> GetServiceByIdAsync(int Entityid)
         {
-            var response = await _servicesRepository.GetByIdAsync(id);
+            var response = await _servicesRepository.GetByIdAsync(Entityid);
             return HandleResponse(response);
         }
 
@@ -66,10 +66,10 @@ namespace TestTaskOmega.API.Controllers
             return HandleResponse(response);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateServiceAsync(int id, [FromBody] string newServiceName)
+        [HttpPut("{Entityid}")]
+        public async Task<IActionResult> UpdateServiceAsync(int Entityid, [FromBody] string newServiceName)
         {
-            var response = await _servicesRepository.UpdateAsync(id, newServiceName);
+            var response = await _servicesRepository.UpdateAsync(Entityid, newServiceName);
             return HandleResponse(response);
         }
 

@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TestTaskOmega.DataAccess\TestTaskOmega.DataAccess.csproj" />
+    <ProjectReference Include="..\TestTaskOmega.Identity\TestTaskOmega.Identity.csproj" />
   </ItemGroup>
 
 </Project>

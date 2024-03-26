@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using TestTaskOmega.Identity.IdentityModels;
 namespace TestTaskOmega.Domain
 {
-    public abstract class BaseEntity<T>
+    public class BaseEntity<T>
     {
         [Key]
         public int Id { get; set; }
@@ -11,8 +12,8 @@ namespace TestTaskOmega.Domain
         private DateTime _createdAt;
         public DateTime CreatedAt => _createdAt;
 
-        private int _createdBy;
-        public int CreatedBy => _createdBy;
+        private ApplicationUser _createdBy = new();
+        public ApplicationUser CreatedBy => _createdBy;
 
         private T _value = default!;
         public T Value => _value;
@@ -23,8 +24,8 @@ namespace TestTaskOmega.Domain
         private DateTime? _deletedAt;
         public DateTime? DeletedAt => _deletedAt;
 
-        private int? _deletedBy;
-        public int? DeletedBy => _deletedBy;
+        private ApplicationUser _deletedBy = new();
+        public ApplicationUser? DeletedBy => _deletedBy;
 
         public bool IsDeleted => DeletedAt.HasValue;
 
@@ -34,12 +35,12 @@ namespace TestTaskOmega.Domain
         {
             
         }
-        protected BaseEntity(T value, int createdBy)
+        protected BaseEntity(T value, ApplicationUser createdBy)
         {
             Create(value, createdBy);
         }
 
-        public void Create(T value, int createdBy)
+        public void Create(T value, ApplicationUser createdBy)
         {
             _value = value;
             _createdBy = createdBy;
@@ -47,19 +48,19 @@ namespace TestTaskOmega.Domain
             AddModification(value, createdBy);
         }
 
-        public void Modify(T newValue, int modifiedBy)
+        public void Modify(T newValue, ApplicationUser modifiedBy)
         {
             AddModification(newValue, modifiedBy);
             _value = newValue;
         }
 
-        public void Delete(int deletedBy)
+        public void Delete(ApplicationUser deletedBy)
         {
             _deletedAt = DateTime.Now;
             _deletedBy = deletedBy;
         }
 
-        private void AddModification(T value, int modifiedBy)
+        private void AddModification(T value, ApplicationUser modifiedBy)
         {
             _modifications.Add(new EntityModification<T>(value, modifiedBy));
         }

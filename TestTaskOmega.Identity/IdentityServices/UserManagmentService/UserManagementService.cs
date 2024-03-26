@@ -25,7 +25,7 @@ namespace TestTaskOmega.Identity.IdentityServices.UserManagmentService
         {
             get
             {
-                var userIdString = _contextAccessor.HttpContext?.User?.FindFirstValue("Id");
+                var userIdString = _contextAccessor.HttpContext?.User?.FindFirstValue("Id"); //this is how you get Id instead of name! 
 
                 if (Guid.TryParse(userIdString, out Guid userId))
                 {

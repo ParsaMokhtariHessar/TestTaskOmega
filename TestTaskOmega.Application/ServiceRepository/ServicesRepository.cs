@@ -82,20 +82,20 @@ namespace TestTaskOmega.Application.ServiceRepository
             }
         }
 
-        public async Task<ServiceResponse<Services>> GetByCreationDateAsync(DateTime creationDate)
+        public async Task<ServiceResponse<IEnumerable<Services>>> GetByCreationDateAsync(DateTime creationDate)
         {
             try
             {
                 var service = await _serviceRepository.GetByCreationDateAsync(creationDate);
-                return new ServiceResponse<Services>(service);
+                return new ServiceResponse<IEnumerable<Services>>(service);
             }
             catch (NotFoundException)
             {
-                return new ServiceResponse<Services>($"Entity with creationDate {creationDate} not found.");
+                return new ServiceResponse<IEnumerable<Services>>($"Entity with creationDate {creationDate} not found.");
             }
             catch (Exception ex)
             {
-                return new ServiceResponse<Services>($"Error retrieving service by creation date: {ex.Message}");
+                return new ServiceResponse<IEnumerable<Services>>($"Error retrieving service by creation date: {ex.Message}");
             }
         }
 
@@ -116,7 +116,8 @@ namespace TestTaskOmega.Application.ServiceRepository
         {
             try
             {
-                var service = await _serviceRepository.GetByValue(serviceName);
+                var services = await _serviceRepository.GetAllAsync();
+                var service = services.Where(s => s.ServiceName == serviceName).FirstOrDefault();
                 if (service == null)
                 {
                     return new ServiceResponse<Services>($"Service with name '{serviceName}' not found.");

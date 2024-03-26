@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TestTaskOmega.Identity\TestTaskOmega.Identity.csproj" />
+  </ItemGroup>
+
 </Project>

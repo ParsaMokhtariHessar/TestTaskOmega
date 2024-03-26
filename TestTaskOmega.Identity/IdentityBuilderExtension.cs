@@ -9,6 +9,7 @@ using TestTaskOmega.Identity.IdentityModels;
 using TestTaskOmega.Identity.IdentityData;
 using TestTaskOmega.Identity.IdentityServices.UserManagmentService;
 using TestTaskOmega.Identity.IdentityServices.AuthenticationService;
+using TestTaskOmega.Identity.IdentityServices.UserService;
 
 namespace TestTaskOmega.Identity
 {
@@ -25,6 +26,7 @@ namespace TestTaskOmega.Identity
 
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IUserManagementService, UserManagementService>();
+            services.AddScoped<IUserService, UserService>();
 
             string? issuer = configuration["JwtSettings:Issuer"];
             string? audience = configuration["JwtSettings:Audience"];

@@ -8,10 +8,9 @@ namespace TestTaskOmega.Application.RepositoryPattern
         Task CreateAsync(T value);
         Task DeleteAsync(int entityId);
         Task<IEnumerable<EntityModification<T>>> GetHistory(int EntityId);
-        Task<TEntity> GetByValue(T value);
         Task<IEnumerable<TEntity>> GetAllAsync();
-        Task<TEntity> GetByCreationDateAsync(DateTime creationDate);
-        Task<TEntity> GetByIdAsync(int id);
+        Task<IEnumerable<TEntity>> GetByCreationDateAsync(DateTime creationDate);
+        Task<TEntity> GetByIdAsync(int entityId);
         Task UpdateAsync(int entityId, T value);
     }
 }

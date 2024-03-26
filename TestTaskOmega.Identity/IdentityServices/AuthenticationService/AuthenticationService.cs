@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using TestTaskOmega.Identity.IdentityModels;
+using TestTaskOmega.Identity.Utilities;
 
 namespace TestTaskOmega.Identity.IdentityServices.AuthenticationService
 {
@@ -28,13 +29,7 @@ namespace TestTaskOmega.Identity.IdentityServices.AuthenticationService
         }
         public async Task<string> Login(string username, string password)
         {
-            var user = await _userManager.FindByNameAsync(username);
-
-            if (user == null)
-            {
-                throw new Exception($"User with {username} not found.");
-            }
-
+            var user = await _userManager.FindByNameAsync(username) ?? throw new Exception($"User with {username} not found.");
             var result = await _signInManager.CheckPasswordSignInAsync(user, password, false);
 
             if (result.Succeeded == false)
@@ -59,7 +54,7 @@ namespace TestTaskOmega.Identity.IdentityServices.AuthenticationService
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, "User");
+                await _userManager.AddToRoleAsync(user, Roles.User.ToRoleString());
                 return user.Id;
             }
             else
